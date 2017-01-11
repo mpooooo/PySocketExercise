@@ -29,6 +29,9 @@ class SockHandle(EventHandler):
         super(SockHandle, self).__del__()
         self._socket_fd.close()
 
+    def getHandler(self):
+        return self._socket_fd
+
     def getHandle(self):
         return self._socket_fd.fileno()
 
@@ -38,8 +41,9 @@ class SockHandle(EventHandler):
         datas = str()
         while True:
             try:
-                data = self._socket_fd.recv(100)
+                data = self._socket_fd.recv(1024)
                 if not data and not datas:
+                    logger.warning('Socket recv 0 size data, client abort.')
                     reactor.remove(self)
                     self._socket_fd.close()
                     break
@@ -74,18 +78,20 @@ class SockHandle(EventHandler):
         send_len = 0 
         peer_ip, peer_port = self._socket_fd.getpeername()
         write_data = str(self._ret_data)
+        reactor = Reactor.getInstance()
         logger.info("Socket write data: %s to %s : %s...", write_data, peer_ip, peer_port)       
         while True:
             try:
                 send_len += self._socket_fd.send(write_data[send_len:])
             except socket.error, msg:
                 logger.error("Socket write to ip %s, port %s failed.",peer_ip, peer_port)
+                reactor.remove(self)
+                self._socket_fd.close()
                 break
             if send_len == len(write_data):
+                reactor.modify(self, Event.ReadEvent)
                 logger.info('write finish.')
                 break
-        reactor = Reactor.getInstance()
-        reactor.modify(self, Event.ReadEvent)
         self._ret_data = []
         self.rlock.release()
 

@@ -17,13 +17,12 @@ class User(object):
     __instance = None
     lock = threading.RLock()
 
-    def __init__(self, handler, user_id, user_nick_name):
-        self._handler = handler
-        self.user_id = user_id
+    def __init__(self, user_id, user_nick_name):
+        self._user_id = user_id
         self.nick_name = user_nick_name
         self._pass_word = None
+        self._telecom_handler = None
         self._last_online_time = None
-        self._contact_catalog = dict()
         self._db_interface = None
         self.key_offline = 'offline'
         self.key_online = 'online'
@@ -32,16 +31,32 @@ class User(object):
         del self._db_interface
 
     @classmethod
-    def getInstance(cls, handler, user_id, user_nick_name):
+    def getInstance(cls, user_id, user_nick_name):
         cls.lock.acquire()
-
-        if cls.__instance == None  or (not cls.__instance.user_id == user_id) \
-            or (not cls.__instance._handler == handler and cls.__instance.user_id == user_id):
-            cls.__instance = User(handler, user_id, user_nick_name)
+        if cls.__instance == None  or (not cls.__instance.user_id == user_id):
+            #or (not cls.__instance._telecom_handler == handler and cls.__instance.user_id == user_id):
+            cls.__instance = User(user_id, user_nick_name)
         cls.lock.release()
         return cls.__instance
 
-    def setPassword(self, pass_word):
+    @property
+    def user_id(self):
+        return self._user_id
+    
+    @property
+    def telecom_handler(self):
+        return self._telecom_handler
+
+    @telecom_handler.setter
+    def telecom_handler(self, handler):
+        self._telecom_handler = handler
+
+    @property
+    def pass_word(self, pass_word):
+        self._pass_word = pass_word
+    
+    @pass_word.setter
+    def pass_word(self, pass_word):
         self._pass_word = pass_word
 
     def register(self):
@@ -94,7 +109,7 @@ class User(object):
 
     def receiveMessage(self, msg_text):
         logger.info('user[%s] receive message[%s] to transport back.', self.user_id, msg_text)
-        self._handler.asynRetData(msg_text)
+        self._telecom_handler.asynRetData(msg_text)
 
     def getOnlineTime(self):
         if not self._db_interface:
@@ -126,6 +141,3 @@ class User(object):
             ret_code, ret_data = True, 'logout success'
         logger.info('user logout finish with [%s: %s]', ret_code, ret_data)
         return ret_code, ret_data
-
-    def getHandler(self):
-        return self._handler

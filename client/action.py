@@ -8,6 +8,7 @@ import time
 import threading
 from message_parser import MessageParser
 from local_user import LocalUser
+from client_logger import logger
 
 class Action(object):
 
@@ -20,6 +21,12 @@ class Action(object):
         self.room_leave_message = dict()
         self.chat_message = dict()
         self.lock = threading.RLock()
+        self.key_ret_code = 'Ret_Code'
+        self.key_ret_detail = 'Detail'
+        self.key_system_message = 'System_Message'
+        self.key_message_text = 'Message_Text'
+        self.key_message_from = 'Message_From'
+        self.key_message_id = 'Message_Id'
 
     def act(self, json_message):
         operate = json_message[self.parser.json_key_operate]
@@ -34,47 +41,51 @@ class Action(object):
 
     def output(self, msg_list):
         for dct in msg_list:
-            if dct.has_key('Ret_Code') and dct.has_key('Detail'):
-                self._retMessageDistribute(dct, dct['Message_Id'])
-            elif dct.has_key("Message_Text"):
-                print dct['Message_Text']
+            if dct.has_key(self.key_ret_code) and dct.has_key(self.key_ret_detail):
+                self._retMessageDistribute(dct, dct[self.key_message_id])
+            elif dct.has_key(self.key_message_text):
+                print dct
+                logger.info(dct[self.key_message_text])
             else:
                 pass
 
     def _roomCreateOutput(self, msg_id, msg_dct):
-        if msg_dct['Ret_Code'] is True:
-            print 'create room success'
-        else:
-            print 'create failed, %s'%msg_dct['Detail']
+        logger.info(msg_dct[self.key_ret_detail])
+        # if msg_dct['Ret_Code'] is True:
+        #     print 'create room success'
+        # else:
+        #     print 'create failed, %s'%msg_dct['Detail']
         
     def _roomEnterOutput(self, msg_id, msg_dct):
-        if msg_dct['Ret_Code'] is True:
+        if msg_dct[self.key_ret_code] is True:
             user = LocalUser.getInstance()
             user.setRoomPlace(self.room_enter_message[msg_id])
             del self.room_enter_message[msg_id]
-            print 'enter success'
-        else:
-            print 'enter failed, %s'%msg_dct['Detail']
+        logger.info(msg_dct[self.key_ret_detail])
+        # print 'enter success'
+        # else:
+        #     print 'enter failed, %s'%msg_dct['Detail']
 
 
     def _roomLeaveOutput(self, msg_id, msg_dct):
-        if msg_dct['Ret_Code'] is True:
+        if msg_dct[self.key_ret_code] is True:
             user = LocalUser.getInstance()
             user.setRoomPlace('hall')
             del self.room_leave_message[msg_id]
-            print 'leave room success'
-        else:
-            print 'leave failed, %s'%msg_dct['Detail']
+        logger.info(msg_dct[self.key_ret_detail])
+        #     print 'leave room success'
+        # else:
+        #     print 'leave failed, %s'%msg_dct['Detail']
 
 
     def _chatOutput(self, msg_id, msg_dct):
-        if msg_dct['Ret_Code'] is True:
+        if msg_dct[self.key_ret_code] is True:
             pass
         else:
-            print 'message send failed.'
+            logger.info(self.msg_dct[self.key_ret_detail])
+            # print msg_dct['Details']
 
     def _retMessageDistribute(self, msg_dct, msg_id):
-        print msg_id, msg_id in self.chat_message
         self.lock.acquire()
         if msg_id in self.room_create_message.keys():
             self._roomCreateOutput(msg_id, msg_dct)
@@ -84,8 +95,12 @@ class Action(object):
             self._roomLeaveOutput(msg_id, msg_dct)
         elif msg_id in self.chat_message.keys():
             self._chatOutput(msg_id, msg_dct)
+        elif msg_dct.has_key(self.key_system_message):
+            logger.info(self.msg_dct[self.key_system_message])
+        elif msg_dct.has_key(self.key_message_text):
+            logger.info(msg_dct[self.key_message_from] +':\n' + msg_dct[self.key_message_text])
         else:
-            print msg_dct['Message_From'] +':\n' + msg_dct['Message_Text']
+            pass
         self.lock.release()
 
     def chat(self, json_message):

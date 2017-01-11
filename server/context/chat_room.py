@@ -31,7 +31,7 @@ class ChatRoom(BaseRoom):
         user_id = user_obj.user_id
         if user_id in self.permission_user and not user_id in self.listening_user:
             self.addUser(user_id, user_obj)
-            message = str({'system message':self.greet_message%(user_id, self.room_id)})
+            message = str({'System_Message':self.greet_message%(user_id, self.room_id)})
             self.boardcast(message)
             return True, 'enter success'
         else:

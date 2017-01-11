@@ -22,18 +22,21 @@ class MessageParser(object):
 	def parse(self, user_input):
 		self.json_dct = {}
 		self.operate = None
+		print user_input
 		msg_list = user_input.strip().split(' ', 1)
+		print msg_list
 		self.operate = msg_list[0]
 
-		if len(msg_list) == 1:
-			print 'the message is to short'
-			return False
-		self.message = msg_list[1]
-		if self._parseRegisterMessage():
+		if len(msg_list) == 2:
+			self.message = msg_list[1]
+
+		if self._parseRegister():
 			return self.json_dct
-		elif self._parseLoginMessage():
+		elif self._parseLogin():
 			return self.json_dct
-		elif self._parseChatMessage():
+		elif self._parseLogout():
+			return self.json_dct()
+		elif self._parseChat():
 			return self.json_dct
 		elif self._parseRoomCreate():
 			return self.json_dct
@@ -93,15 +96,12 @@ class MessageParser(object):
 		if self.operate == self.msg_key_operate_room:
 			msg_list = self.message.split(' ', 2)
 			action = msg_list[0]
-			if action == self.msg_key_operate_enter:
+			if action == self.msg_key_operate_enter and len(msg_list) == 2:
 				self.json_dct.update({self.json_key_operate: self.json_key_operate_room_enter})
 				user = LocalUser.getInstance()
 				usr_info = user.getUserInfo()
 				self.json_dct.update({self.json_key_user:usr_info})
 				room_id = str()
-				# if not (msg_list[1].startswith('[') and msg_list[1].endswith(']')):
-				# 	print 'room id should be included in [ ]'
-				# 	return False
 				if not '#' in msg_list[1]:
 					room_id = usr_info[self.json_key_user_id] + '#' + msg_list[1].strip('[]')
 				else:
@@ -160,7 +160,7 @@ class MessageParser(object):
 				return True
 		return False
 
-	def _parseChatMessage(self):
+	def _parseChat(self):
 		if self.operate == self.msg_key_operate_chat:
 			user = LocalUser.getInstance()
 			usr_info = user.getUserInfo()
@@ -187,7 +187,18 @@ class MessageParser(object):
 				return True
 		return False
 
-	def _parseLoginMessage(self):
+	def _parseLogout(self):
+		if self.operate == self.msg_key_operate_logout:
+			print 'in lougout'
+			usr_info = user.getUserInfo()
+			if usr_info:
+				self.json_dct.update({self.json_key_operate: self.json_key_operate_logout})
+				self.json_dct.update({self.json_key_user:usr_info})
+				return True
+		else:
+			return False
+
+	def _parseLogin(self):
 		if self.operate == self.msg_key_operate_login:
 			msg_list = self.message.split(' ', 1)
 			if len(msg_list) < 2:
@@ -206,7 +217,7 @@ class MessageParser(object):
 			return True
 		return False
 
-	def _parseRegisterMessage(self):
+	def _parseRegister(self):
 		if self.operate == self.msg_key_operate_register:
 			msg_list = self.message.split(' ', 1)
 			if len(msg_list) < 2:
@@ -229,6 +240,7 @@ class MessageParser(object):
 		self.json_key_operate = 'Operate'
 		self.json_key_operate_register = 'Register'
 		self.json_key_operate_login = 'Login'
+		self.json_key_operate_logout = 'Logout'
 		self.json_key_operate_message_send = 'Message_Send'
 		self.json_key_operate_room_create = 'Room_Create'
 		self.json_key_operate_room_invite = 'Room_Invite'

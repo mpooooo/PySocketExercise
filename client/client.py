@@ -3,20 +3,13 @@
 import os
 import sys
 import socket 
-import logging
 import time
 import threading
 import signal
 from local_user import LocalUser
 from message_parser import MessageParser
 from action import Action
-import copy
-
-logging.basicConfig(level=logging.DEBUG,  
-                    format='%(asctime)s  %(filename)s [line:%(lineno)d] %(levelname)s: %(message)s',  
-                    datefmt='%a, %d %b %Y %H:%M:%S', 
-                    filename='./client.log'   
-                    ) 
+from client_logger import logger
 
 class Client(object):
 
@@ -31,18 +24,18 @@ class Client(object):
         self.addr = (host, port)
         try:
             self.listen_fd = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-            logging.info('Clent create socket fd success.')
+            logger.debug('Clent create socket fd success.')
         except socket.error, msg:
-            logging.error("client create socket failed, the error msg : %s.",msg)
+            logger.error("client create socket failed, the error msg : %s.",msg)
             raise socket.error
 
         try:
             self.listen_fd.connect(self.addr)
-            logging.info('Client connect %s port %s success.', self.addr[0], self.addr[1])
+            logger.debug('Client connect %s port %s success.', self.addr[0], self.addr[1])
         except socket.error, msg:
-            logging.error('Client: connect %s port %s failed, the error msg: %s.',self.addr[0],self.addr[1],msg)
+            logger.error('Client: connect %s port %s failed, the error msg: %s.',self.addr[0],self.addr[1],msg)
             raise socket.error
-        print 'connect success.'
+        logger.debug('connect %s success.', self.addr)
 
     def close(self):
         self.listen_fd.close()
@@ -57,6 +50,7 @@ class Client(object):
         self.lock.acquire()
         if self.send_queue:
             for msg in self.send_queue:
+                logger.debug('client send user cmd message %s.', msg)
                 self.listen_fd.sendall(msg)
             self.send_queue = []
         else:
@@ -73,68 +67,85 @@ class Client(object):
 
     def messageReveive(self, buffer_size = 1024):
         rev_data = self.listen_fd.recv(buffer_size)
-        logging.info('receive original msg data: %s.', rev_data)
-        rev_lst = eval(rev_data)
+        logger.debug('client receive server message %s.', rev_data)
+        rev_lst = None
+        try:
+           rev_lst = eval(rev_data)
+        except TypeError:
+            logger.error('Client receive data %s beyond rule.', rev_data)
         if not type(rev_lst) == type(list()):
-            logging.error('Client receive wrong data %s.', rev_lst)
-        self.lock.acquire()
-        for item in rev_lst:
-            if not type(item) == type(dict()):
-                self.recv_queue.append(eval(item))
-            else:
-                self.recv_queue.append(item)
-        self.lock.release()
-        print 'receive data %s'%rev_lst
+            logger.error('Client do not receive %s except list', type(rev_lst))
+        else:
+            self.lock.acquire()
+            for item in rev_lst:
+                if type(item) == type(str()):
+                    try:
+                        item = eval(item)
+                    except TypeError:
+                        logger.error('Client receive date list should be eval to dict %s', item)
+                if type(item) == type(dict()):
+                    self.recv_queue.append(item)
+                else:
+                    logger.debug('Client do not recv %s item except dict.', type(item))
+            self.lock.release()
+        logger.debug('Client receive message %s from server after fliter.', self.recv_queue)
 
 def loginOrRegister(client):
     parser = MessageParser()
     next_menu = False
+    logger.info('Login And Register Menu.')
     while True:
         data = raw_input()
+        logger.debug('User input %s in Client Login.', data)
         if data == 'exit':
             client.close()
             sys.exit()
         json_dct = parser.parse(data)
+        logger.debug('User input after parser is %s.', json_dct)
         if json_dct and json_dct[parser.json_key_operate] == parser.json_key_operate_register:
             client.messageSend(str(json_dct))
             rev_lst = client.getReceiveData()
             for ret_dict in rev_lst:
                 if ret_dict.has_key('Ret_Code') and (ret_dict['Ret_Code']) == True:
-                    print 'register success'
+                    # logger.info('User register success.')
+                    logger.info(ret_dict['Detail'])
                     break
             else:
-                print 'register failed'
+                logger.info(ret_dict['Detail'])
+                # logger.warning('User register failed, %s', ret_dict['Detail'])
         elif json_dct and json_dct[parser.json_key_operate] == parser.json_key_operate_login:
             client.messageSend(str(json_dct))
             rev_lst = client.getReceiveData()
-            print 'login',rev_lst
             for ret_dict in rev_lst:
                 if ret_dict.has_key('Ret_Code') and (ret_dict['Ret_Code']) is True:
                     user = LocalUser.getInstance()
                     user.setUserId(json_dct[parser.json_key_user][parser.json_key_user_id])
-                    print 'login success'
                     next_menu = True
+                    logger.info(ret_dict['Detail'])
+                    # logger.info('User login success.')
                     break
             else:
-                print 'login failed'
+                logger.info(ret_dict['Detail'])
+                # logger.info('User login failed')
         else:
-            print 'login or register menu.'
+            logger.warning('User input command beyond rule.')
         if next_menu:
             break
 
 def inputMessage(action):
     parser = MessageParser()
-    print 'input chat cmd in the blow...'
+    logger.info('input you chat command with the instruction above.')
     while True:
         input_cmd = raw_input('')
         if input_cmd == 'exit':
             action.client.close()
             sys.exit()
+        print 'leihou', input_cmd
         json_dct = parser.parse(input_cmd)
         if json_dct:
             action.act(json_dct)
         else:
-            print 'please input again'
+            logger.info('not in rule, please check and input your command again.')
     client.close()
 
 def outputMessage(action):
@@ -143,11 +154,11 @@ def outputMessage(action):
         action.output(ret_lst)
 
 def quit(signum, frame):
-    print 'client close'
+    logger.info('client close...')
     sys.exit()
 
 if __name__ == '__main__':
-    host = '127.0.0.2'
+    host = '10.53.228.191'
     port = 2003
     signal.signal(signal.SIGINT, quit)
     signal.signal(signal.SIGTERM, quit)
@@ -170,16 +181,15 @@ if __name__ == '__main__':
             *                                                                  *
             * chat message:                          send message to cur room  *
             * chat [user] message:                   send message to user      *
-            * room create [room id]:                 create chat room          *
-            * room invite [room id]  user1 user2:    invite users to room      *
-            * room enter [room id]:                  enter to room             *
-            * room leave [room id]:                  leave cur room            *
+            * room create room_id:                   create chat room          *
+            * room invite user1 user2:               invite users to room      *
+            * room enter  room_id:                   enter to room             *
+            * room leave room id:                    leave cur room            *
             *                                                                  *
             ********************************************************************
         '''
     try:
         user = LocalUser.getInstance()
-        print user
         action = Action(client, user)
         output_thread = threading.Thread(target = outputMessage, args = [action])
         output_thread.setDaemon(True)

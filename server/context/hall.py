@@ -35,7 +35,7 @@ class Hall(BaseRoom):
     def enterRoom(self, user_id, user_obj):
         user_id = user_obj.user_id
         if not user_id in self.listening_user:
-            message = str({'system message':self.greet_message%(user_id, self.room_id)})
+            message = str({'System_Message':self.greet_message%(user_id, self.room_id)})
             self.addUserPerssion(user_id)
             self.addUser(user_id, user_obj)
             self.boardcast(message)

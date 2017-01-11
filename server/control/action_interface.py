@@ -2,6 +2,8 @@
 #coding=utf-8
 import os
 import sys
+import threading
+import time
 from user_action import UserAction
 from message_action import MessageAction
 from room_action import RoomAction
@@ -19,6 +21,8 @@ class ActionInterface(UserAction, MessageAction, RoomAction, GameEnginAction):
         MessageAction.__init__(self, msg_obj, callback_func)
         RoomAction.__init__(self, room_obj)
         GameEnginAction.__init__(self)
+        self.heartbeat_sock_handle = set()
+        self.lock = threading.RLock()
 
     def roomEnter(self):
         RoomAction.roomEnter(self, self.getUser())
@@ -38,21 +42,36 @@ class ActionInterface(UserAction, MessageAction, RoomAction, GameEnginAction):
         context = Context.getInstance()
         goal_user, goal_user_id = None, None
         for user_id, user in context.getOnlineUser().items():
-            if user.getHandler() is user_handler:
+            if user.telecom_handler is user_handler:
                 goal_user, goal_user_id = user, user_id
                 break
         if not goal_user is None:
             logger.info('user[%s] disconnect to the server', goal_user.user_id)
-            user_obj = User.getInstance(user_handler, goal_user_id, goal_user.nick_name)
+            user_obj = User.getInstance(goal_user_id, goal_user.nick_name)
             self.setUser(user_obj)
             self.logout()
-            user_connected_list = context.getOnlineConnectedRoomWithUser(user_obj)
-            for room_obj in user_connected_list:
-                self.setRoom(room_obj)
-                RoomAction.roomLeave(self, user_obj)
-            del user_obj
+            # user_connected_list = context.getOnlineConnectedRoomWithUser(user_obj)
+            # for room_obj in user_connected_list:
+            #     self.setRoom(room_obj)
+            #     RoomAction.roomLeave(self, user_obj)
+            # del user_obj
         else:
+            logger.error('disconnect user obj is None.')
             pass
 
     def gameMessageTransport(self):
         GameEnginAction.gameMessageTransport(self, self.getMessage(), self.getUser())
+
+    def addHeartbeat(self, sock_handle):
+        self.lock.acquire()
+        self.heartbeat_sock_handle.add(sock_handle)
+        self.lock.release()
+
+    def heartbeatStart(self):
+        logger.info('heartbeat start...')
+        while True:
+            self.lock.acquire()
+            for sock_handle in self.heartbeat_sock_handle:
+                sock_handle.asynRetData(str({'Heartbeat':'heartbeat'}))
+            self.lock.release()
+            time.sleep(2)

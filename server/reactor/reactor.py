@@ -8,7 +8,6 @@ import event_demultiplexer
 from epoll_demultiplexer import EpollDemultiplexer
 from reactor_impl import ReactorImplementation
 from control.controller import Controller
-from control.operation import Operation
 
 class Reactor(object):
 
@@ -33,7 +32,11 @@ class Reactor(object):
         return self.impl.remove(event_handler)
     
     def modify(self, event_handler, event):
-        return self.impl.modify(event_handler, event)
+        try:
+            ret = self.impl.modify(event_handler, event)
+        except:
+            self.controller.disconnect(event_handler)
+        return ret
 
     def eventLoop(self, timeout = 0):
         return self.impl.eventLoop(timeout)

@@ -36,11 +36,9 @@ class GameActivityEngine(object):
     def receiveMessage(self, message_obj, user_obj):
         self.lock.acquire()
         self.recv_message_queue.append((message_obj.consumer_id, message_obj.received_text, user_obj))
-        print 'receive message',self.recv_message_queue
         self.lock.release()
 
     def sendMessage(self, msg_to, message):
-        print 'send message', message
         message = Message(None, None, msg_to, message)
         message.messageTransport()
         del message
@@ -61,8 +59,13 @@ class GameActivityEngine(object):
     def _activitytearDown(self, activity):
         if activity.triggerEnd():
             winner = activity.getWinner()
+            winner_message = None
+            if not winner is None:
+                winner_message = 'winner is' + str(winner)
+            else:
+                winner_message = 'nobody get currect answer.'
             group = activity.getGameGroup()
-            self.sendMessage(group, 'winner is' + str(winner))
+            self.sendMessage(group, winner_message)
             activity.tearDown()
         else:
             pass
@@ -71,10 +74,10 @@ class GameActivityEngine(object):
         self.lock.acquire()
         if activity.triggerAlive():
             del_list = []
-            for msg_to, msg, user in self.recv_message_queue:
+            for msg_to, msg, user_obj in self.recv_message_queue:
                 if msg_to == activity.getTag():
-                    activity.judge(msg, user)
-                    del_list.append((msg_to, msg, user))
+                    activity.judge(msg, user_obj)
+                    del_list.append((msg_to, msg, user_obj))
                 else:
                     pass
             else:

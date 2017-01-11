@@ -35,6 +35,7 @@ class Controller(object):
         self._actionMap()
         self.hander_user_map = {}
         self.gameEnginStart()
+        # self.heartbeatStart()
 
     def _actionMap(self):
         self._exec_map = {
@@ -71,9 +72,10 @@ class Controller(object):
         else:
             usr_dct = cmd_dict[key_user]
             pass_word = None
-            usr_obj = User.getInstance(handler, usr_dct[key_user_id], usr_dct[key_user_nick_name])
+            usr_obj = User.getInstance(usr_dct[key_user_id], usr_dct[key_user_nick_name])
+            usr_obj.telecom_handler = handler
             if usr_dct.has_key(key_user_pass_word):
-                usr_obj.setPassword(usr_dct[key_user_pass_word])
+                usr_obj.pass_word = usr_dct[key_user_pass_word]
             return usr_obj
 
     def extractMessage(self, cmd_dict):
@@ -97,26 +99,34 @@ class Controller(object):
             room_obj = ChatRoom.getInstance(room_dct[key_room_id], user)
             return room_obj
 
-    def distribute(self, handler):
+    def distribute(self, sock_handle):
         ret_data = None
-        ret_code, cmd_dict = self.messageCheck(handler.received_data)
-        logger.info('Controller distribute received user message: %s .', handler.received_data)
+        ret_code, cmd_dict = self.messageCheck(sock_handle.received_data)
+        logger.info('Controller distribute received user message: %s .', sock_handle.received_data)
         if ret_code:
-            usr_obj = self.extractUser(handler, cmd_dict)
+            usr_obj = self.extractUser(sock_handle, cmd_dict)
             self.action.setUser(usr_obj)    
             msg_obj = self.extractMessage(cmd_dict)
             self.action.setMessage(msg_obj)
             room_obj = self.extractRoom(cmd_dict, usr_obj)
             self.action.setRoom(room_obj)
-            self.action.setCallback(handler.asynRetData)
+            self.action.setCallback(sock_handle.asynRetData)
             self._exec_thread_pool.addTask(self._exec_map[cmd_dict[key_operate]])
         else:
-            logger.error('Controller ditribute error message: %s .', handler.received_data)
-            handler.asynRetData({'Detail': 'message beyond rules', 'Ret_Code': False})
-        pass
+            logger.error('Controller ditribute error message: %s .', sock_handle.received_data)
+            sock_handle.asynRetData({'Detail': 'message beyond rules', 'Ret_Code': False})
+        # self.addHeartbeat(sock_handle)
+
+    def heartbeatStart(self):
+        self._exec_thread_pool.addTask(self.action.heartbeatStart)
+
     def gameEnginStart(self):
         self._exec_thread_pool.addTask(self.action.gameEnginStart)
 
-    def disconnect(self, handler):
-        self.action.disconnect(handler)
-        #self._exec_thread_pool.addTask(self.action.disconnect, args = (handler,))
+    def disconnect(self, sock_handle):
+        self.action.disconnect(sock_handle)
+        #self._exec_thread_pool.addTask(self.action.disconnect, args = (sock_handle,))
+
+    def addHeartbeat(self, sock_handle):
+        self._exec_thread_pool.addTask(self.action.addHeartbeat, args = (sock_handle,))
+        # self.action.addHeartbeat(sock_handle)
