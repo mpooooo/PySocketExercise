@@ -40,7 +40,4 @@ class UserAction(object):
             for room_obj in user_connected_list:
                 room_obj.leaveRoom(self, self._user)
             del self._user
-            # hall = Hall.getInstance()
-            # hall.leaveRoom(self._user.user_id, self._user)
-            # del self._user
         return ret_code, ret_data

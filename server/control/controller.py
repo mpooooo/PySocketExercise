@@ -35,7 +35,6 @@ class Controller(object):
         self._actionMap()
         self.hander_user_map = {}
         self.gameEnginStart()
-        # self.heartbeatStart()
 
     def _actionMap(self):
         self._exec_map = {
@@ -115,7 +114,6 @@ class Controller(object):
         else:
             logger.error('Controller ditribute error message: %s .', sock_handle.received_data)
             sock_handle.asynRetData({'Detail': 'message beyond rules', 'Ret_Code': False})
-        # self.addHeartbeat(sock_handle)
 
     def heartbeatStart(self):
         self._exec_thread_pool.addTask(self.action.heartbeatStart)
@@ -125,8 +123,3 @@ class Controller(object):
 
     def disconnect(self, sock_handle):
         self.action.disconnect(sock_handle)
-        #self._exec_thread_pool.addTask(self.action.disconnect, args = (sock_handle,))
-
-    def addHeartbeat(self, sock_handle):
-        self._exec_thread_pool.addTask(self.action.addHeartbeat, args = (sock_handle,))
-        # self.action.addHeartbeat(sock_handle)

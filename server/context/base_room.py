@@ -23,6 +23,7 @@ class BaseRoom(object):
         self.permission_user.add(self.room_owner.user_id)
         self.permission_user.add(self.admin_owner.user_id)
         self.lock = threading.RLock()
+        self.key_message_room_tag = 'Room_Place'
         self.greet_message = 'welcome %s to %s'
         self.farewell_message = '%s leave %s'
 
@@ -44,7 +45,7 @@ class BaseRoom(object):
         ret_code, ret_data = True, str()
         context = Context.getInstance()
         context.removeOnlineRoom(self.room_id, self)
-        logger.info('Room [%s] destroied, owner is [%s]', self.room_id, self.room_owner)
+        logger.info('Room [%s] destroy, owner is [%s]', self.room_id, self.room_owner)
 
     def getRoomOwner(self):
         return self.room_owner
@@ -55,25 +56,26 @@ class BaseRoom(object):
         self.lock.release()
         return ret
 
-    def addUser(self, user_id, user):
+    def addUser(self, user_id, user_obj):
         ctx = Context.getInstance()
-        ctx.addOnlineUser(user_id, user)
-        ctx.addOnlineRoomUser(self.room_id, user)
+        ctx.addOnlineUser(user_id, user_obj)
+        ctx.addOnlineRoomUser(self.room_id, user_obj)
     	self.lock.acquire()
-        self.listening_user.update({user_id: user})
+        self.listening_user.update({user_id: user_obj})
         logger.info("user [%s] enter room [%s], room users now [%s].",user_id, self.room_id, self.listening_user)
         self.lock.release()
         return True
 
-    def removeUser(self, user_id, user):
+    def removeUser(self, user_id, user_obj):
     	self.lock.acquire()
         ret_code = False
         if self.listening_user.has_key(user_id):
             ctx = Context.getInstance()
             if self.room_owner.user_id == user_id:    
-                ctx.changeOnlineRoomOwner(self.room_id, user, self.admin_owner)
-            ctx.removeOnlineRoomUser(self.room_id, user)
+                ctx.changeOnlineRoomOwner(self.room_id, user_obj, self.admin_owner)
+            ctx.removeOnlineRoomUser(self.room_id, user_obj)
             del self.listening_user[user_id]
+            del self.permission_user[user_id]
             logger.info("user [%s] leave room [%s], room users now [%s].",user_id, self.room_id, self.listening_user)
             ret_code = True
         self.lock.release()
@@ -105,15 +107,16 @@ class BaseRoom(object):
 
     def boardcast(self, message, except_user = None):
         self.lock.acquire()
-        logger.info('room [%s] received message [%ss].', self.room_id, message)
+        logger.info('room [%s] received message [%s].', self.room_id, message)
         if except_user is None:
             except_user = []
-        for user_id, usr in self.listening_user.items():
+        message.update({self.key_message_room_tag: self.room_id})
+        for user_id, user_obj in self.listening_user.items():
             if user_id in except_user:
                 continue
             try:
-                logger.info('room message [%s] send to user [%s]', message, usr.user_id)
-                usr.receiveMessage(message)
+                logger.info('room message [%s] send to user [%s]', message, user_obj.user_id)
+                user_obj.receiveMessage(message)
             except:
                 import traceback
                 traceback.print_exc()  

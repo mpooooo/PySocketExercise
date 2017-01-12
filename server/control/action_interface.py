@@ -50,28 +50,9 @@ class ActionInterface(UserAction, MessageAction, RoomAction, GameEnginAction):
             user_obj = User.getInstance(goal_user_id, goal_user.nick_name)
             self.setUser(user_obj)
             self.logout()
-            # user_connected_list = context.getOnlineConnectedRoomWithUser(user_obj)
-            # for room_obj in user_connected_list:
-            #     self.setRoom(room_obj)
-            #     RoomAction.roomLeave(self, user_obj)
-            # del user_obj
         else:
             logger.error('disconnect user obj is None.')
             pass
 
     def gameMessageTransport(self):
         GameEnginAction.gameMessageTransport(self, self.getMessage(), self.getUser())
-
-    def addHeartbeat(self, sock_handle):
-        self.lock.acquire()
-        self.heartbeat_sock_handle.add(sock_handle)
-        self.lock.release()
-
-    def heartbeatStart(self):
-        logger.info('heartbeat start...')
-        while True:
-            self.lock.acquire()
-            for sock_handle in self.heartbeat_sock_handle:
-                sock_handle.asynRetData(str({'Heartbeat':'heartbeat'}))
-            self.lock.release()
-            time.sleep(2)

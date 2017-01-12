@@ -22,14 +22,10 @@ class MessageParser(object):
 	def parse(self, user_input):
 		self.json_dct = {}
 		self.operate = None
-		print user_input
 		msg_list = user_input.strip().split(' ', 1)
-		print msg_list
 		self.operate = msg_list[0]
-
 		if len(msg_list) == 2:
 			self.message = msg_list[1]
-
 		if self._parseRegister():
 			return self.json_dct
 		elif self._parseLogin():
@@ -189,7 +185,6 @@ class MessageParser(object):
 
 	def _parseLogout(self):
 		if self.operate == self.msg_key_operate_logout:
-			print 'in lougout'
 			usr_info = user.getUserInfo()
 			if usr_info:
 				self.json_dct.update({self.json_key_operate: self.json_key_operate_logout})

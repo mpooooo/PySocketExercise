@@ -68,5 +68,5 @@ class ServerLogger(object):
 
 logger = ServerLogger()
 
-if __name__ == '__main__':
-    logger.info('hello')
+# if __name__ == '__main__':
+#     logger.info('hello')

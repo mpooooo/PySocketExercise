@@ -28,7 +28,6 @@ class Client(object):
         except socket.error, msg:
             logger.error("client create socket failed, the error msg : %s.",msg)
             raise socket.error
-
         try:
             self.listen_fd.connect(self.addr)
             logger.debug('Client connect %s port %s success.', self.addr[0], self.addr[1])
@@ -107,12 +106,10 @@ def loginOrRegister(client):
             rev_lst = client.getReceiveData()
             for ret_dict in rev_lst:
                 if ret_dict.has_key('Ret_Code') and (ret_dict['Ret_Code']) == True:
-                    # logger.info('User register success.')
                     logger.info(ret_dict['Detail'])
                     break
             else:
                 logger.info(ret_dict['Detail'])
-                # logger.warning('User register failed, %s', ret_dict['Detail'])
         elif json_dct and json_dct[parser.json_key_operate] == parser.json_key_operate_login:
             client.messageSend(str(json_dct))
             rev_lst = client.getReceiveData()
@@ -122,11 +119,9 @@ def loginOrRegister(client):
                     user.setUserId(json_dct[parser.json_key_user][parser.json_key_user_id])
                     next_menu = True
                     logger.info(ret_dict['Detail'])
-                    # logger.info('User login success.')
                     break
             else:
                 logger.info(ret_dict['Detail'])
-                # logger.info('User login failed')
         else:
             logger.warning('User input command beyond rule.')
         if next_menu:
@@ -140,7 +135,6 @@ def inputMessage(action):
         if input_cmd == 'exit':
             action.client.close()
             sys.exit()
-        print 'leihou', input_cmd
         json_dct = parser.parse(input_cmd)
         if json_dct:
             action.act(json_dct)
@@ -154,7 +148,7 @@ def outputMessage(action):
         action.output(ret_lst)
 
 def quit(signum, frame):
-    logger.info('client close...')
+    logger.info('client close')
     sys.exit()
 
 if __name__ == '__main__':

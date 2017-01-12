@@ -9,7 +9,7 @@ import random
 class Game21(object):
 
     def __init__(self):
-        self._game_message = 'notice: 21Game task：use number %s with +=*/() to close 21'
+        self._game_message = 'Notice: 21Game task: use number %s with +=*/() to close 21'
         self._activity_tag = '21game'
         self._stop = False
         self._group = 'hall'
@@ -51,7 +51,6 @@ class Game21(object):
             return False
         cur_time = datetime.datetime.now()
         if cur_time.minute in [0, 30] and cur_time.second == 0:
-        # if cur_time.second % 10 == 0:
             self.start_time = cur_time
             self._alive = True
             return True
@@ -64,7 +63,6 @@ class Game21(object):
         cur_time = datetime.datetime.now()
         if not self._alive:
             return False
-        #if (cur_time.minute == self._game_last_minute and cur_time.second == 0 and cur_time.hour%3 == 0) or self._stop:
         if ((self.start_time.minute + self._game_last_minute) == cur_time.minute 
             and (self.start_time.hour + self._game_last_hour) == cur_time.hour 
             and (self.start_time.second + self._game_last_second) == cur_time.second

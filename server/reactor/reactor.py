@@ -46,5 +46,5 @@ class Reactor(object):
         for handler in event_handlers:
             self.controller.disconnect(handler)
 
-if __name__ == '__main__':
-     foo1 = Reactor.getInstance()
+# if __name__ == '__main__':
+#      foo1 = Reactor.getInstance()

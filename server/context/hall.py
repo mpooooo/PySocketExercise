@@ -47,18 +47,6 @@ class Hall(BaseRoom):
         context.removeOnlineUser(user_id, user_obj)
         return self.removeUser(user_id, user_obj)
 
-    # def addUser2Room(self, user_id, user):
-    #     message = str({'system message':self.greet_message%(user_id, self.room_id)})
-    #     self.addUserPerssion(user_id)
-    #     ret_code = self.addUser(user_id, user)
-    #     self.boardcast(message)
-    #     return ret_code
-
-    # def removeRoomUser(self, user_id, user):
-    #     ctx = Context.getInstance()
-    #     ctx.removeOnlineUser(user_id, user)
-    #     return self.removeUser(user_id, user)
-
 # def test(i):
 #     r = Hall.getInstance()
 #     r.addUser({i:i})

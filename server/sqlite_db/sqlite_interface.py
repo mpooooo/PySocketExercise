@@ -54,7 +54,6 @@ class SqliteInterface(object):
 			col_lst.append(',')
 		ret_sql = ''.join(col_lst[0: len(col_lst)-1])
 		fetch_sql = self._fetch_template%(ret_sql, condition_sql)
-		#print fetch_sql
 		ret_code, ret_data = True, None
 		try:
 			cu = self.getCursor()
