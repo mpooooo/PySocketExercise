@@ -58,7 +58,7 @@ class BaseRoom(object):
 
     def addUser(self, user_id, user_obj):
         ctx = Context.getInstance()
-        ctx.addOnlineUser(user_id, user_obj)
+        # ctx.addOnlineUser(user_id, user_obj)
         ctx.addOnlineRoomUser(self.room_id, user_obj)
     	self.lock.acquire()
         self.listening_user.update({user_id: user_obj})
@@ -71,11 +71,11 @@ class BaseRoom(object):
         ret_code = False
         if self.listening_user.has_key(user_id):
             ctx = Context.getInstance()
-            if self.room_owner.user_id == user_id:    
+            if self.room_owner.user_id == user_id: 
                 ctx.changeOnlineRoomOwner(self.room_id, user_obj, self.admin_owner)
             ctx.removeOnlineRoomUser(self.room_id, user_obj)
             del self.listening_user[user_id]
-            del self.permission_user[user_id]
+            self.permission_user.remove(user_id)
             logger.info("user [%s] leave room [%s], room users now [%s].",user_id, self.room_id, self.listening_user)
             ret_code = True
         self.lock.release()
@@ -105,18 +105,18 @@ class BaseRoom(object):
         self.lock.release()
         return ret_code
 
-    def boardcast(self, message, except_user = None):
+    def boardcast(self, message_dict, except_user = None):
         self.lock.acquire()
-        logger.info('room [%s] received message [%s].', self.room_id, message)
+        logger.info('room [%s] received message [%s].', self.room_id, message_dict)
         if except_user is None:
             except_user = []
-        message.update({self.key_message_room_tag: self.room_id})
+        message_dict.update({self.key_message_room_tag: self.room_id})
         for user_id, user_obj in self.listening_user.items():
             if user_id in except_user:
                 continue
             try:
-                logger.info('room message [%s] send to user [%s]', message, user_obj.user_id)
-                user_obj.receiveMessage(message)
+                logger.info('room message [%s] send to user [%s]', message_dict, user_obj.user_id)
+                user_obj.receiveMessage(message_dict)
             except:
                 import traceback
                 traceback.print_exc()  

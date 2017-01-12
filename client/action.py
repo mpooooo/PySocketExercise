@@ -24,9 +24,13 @@ class Action(object):
         self.key_ret_code = 'Ret_Code'
         self.key_ret_detail = 'Detail'
         self.key_system_message = 'System_Message'
+        self.value_system_message = 'system message:'
         self.key_message_text = 'Message_Text'
         self.key_message_from = 'Message_From'
+        self.value_message_from = 'From user id: '
         self.key_message_id = 'Message_Id'
+        self.key_room_place = "Room_Place"
+        self.value_room_place = 'Room id: '
 
     def act(self, json_message):
         operate = json_message[self.parser.json_key_operate]
@@ -43,29 +47,25 @@ class Action(object):
         for dct in msg_list:
             if dct.has_key(self.key_ret_code) and dct.has_key(self.key_ret_detail):
                 self._retMessageDistribute(dct, dct[self.key_message_id])
+            elif dct.has_key(self.key_system_message):
+                logger.info(self.key_system_message + ':' + dct[self.key_system_message])
             elif dct.has_key(self.key_message_text):
-                print dct
-                logger.info(dct[self.key_message_text])
-            else:
-                pass
+                output_message = str()
+                if dct.has_key(self.key_room_place):
+                    output_message += self.value_room_place + dct[self.key_room_place] + '\n'
+                if not dct[self.key_message_from] is None:
+                    output_message += self.value_message_from + dct[self.key_message_from] + '\n'
+                logger.info(output_message + dct[self.key_message_text])
 
     def _roomCreateOutput(self, msg_id, msg_dct):
         logger.info(msg_dct[self.key_ret_detail])
-        # if msg_dct['Ret_Code'] is True:
-        #     print 'create room success'
-        # else:
-        #     print 'create failed, %s'%msg_dct['Detail']
-        
+
     def _roomEnterOutput(self, msg_id, msg_dct):
         if msg_dct[self.key_ret_code] is True:
             user = LocalUser.getInstance()
             user.setRoomPlace(self.room_enter_message[msg_id])
             del self.room_enter_message[msg_id]
         logger.info(msg_dct[self.key_ret_detail])
-        # print 'enter success'
-        # else:
-        #     print 'enter failed, %s'%msg_dct['Detail']
-
 
     def _roomLeaveOutput(self, msg_id, msg_dct):
         if msg_dct[self.key_ret_code] is True:
@@ -73,17 +73,12 @@ class Action(object):
             user.setRoomPlace('hall')
             del self.room_leave_message[msg_id]
         logger.info(msg_dct[self.key_ret_detail])
-        #     print 'leave room success'
-        # else:
-        #     print 'leave failed, %s'%msg_dct['Detail']
-
 
     def _chatOutput(self, msg_id, msg_dct):
         if msg_dct[self.key_ret_code] is True:
             pass
         else:
-            logger.info(self.msg_dct[self.key_ret_detail])
-            # print msg_dct['Details']
+            logger.info(msg_dct[self.key_ret_detail])
 
     def _retMessageDistribute(self, msg_dct, msg_id):
         self.lock.acquire()
@@ -95,10 +90,6 @@ class Action(object):
             self._roomLeaveOutput(msg_id, msg_dct)
         elif msg_id in self.chat_message.keys():
             self._chatOutput(msg_id, msg_dct)
-        elif msg_dct.has_key(self.key_system_message):
-            logger.info(self.msg_dct[self.key_system_message])
-        elif msg_dct.has_key(self.key_message_text):
-            logger.info(msg_dct[self.key_message_from] +':\n' + msg_dct[self.key_message_text])
         else:
             pass
         self.lock.release()

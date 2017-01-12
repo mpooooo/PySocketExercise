@@ -35,17 +35,18 @@ class Hall(BaseRoom):
     def enterRoom(self, user_id, user_obj):
         user_id = user_obj.user_id
         if not user_id in self.listening_user:
-            message = str({'System_Message':self.greet_message%(user_id, self.room_id)})
+            message_dict = {'System_Message':self.greet_message%(user_id, self.room_id)}
             self.addUserPerssion(user_id)
             self.addUser(user_id, user_obj)
-            self.boardcast(message)
+            self.boardcast(message_dict)
             return True, 'enter hall success'
         return False, 'already in hall now'
 
     def leaveRoom(self, user_id, user_obj):
-        context = Context.getInstance()
-        context.removeOnlineUser(user_id, user_obj)
-        return self.removeUser(user_id, user_obj)
+        # context = Context.getInstance()
+        # context.removeOnlineUser(user_id, user_obj)
+        self.removeUser(user_id, user_obj)
+        # del user_obj
 
 # def test(i):
 #     r = Hall.getInstance()

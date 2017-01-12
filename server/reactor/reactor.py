@@ -31,11 +31,11 @@ class Reactor(object):
         return self.impl.remove(event_handler)
     
     def modify(self, event_handler, event):
-        ret = None
-        try:
-            ret = self.impl.modify(event_handler, event)
-        except:
-            self.controller.disconnect(event_handler)
+        # ret = None
+        # try:
+        ret = self.impl.modify(event_handler, event)
+        # except:
+        #     self.controller.disconnect(event_handler)
         return ret
 
     def eventLoop(self, timeout = 0):

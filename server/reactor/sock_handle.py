@@ -56,7 +56,6 @@ class SockHandle(EventHandler):
                     self.received_data = datas
                     reactor.controller.distribute(self)
                     break
-
                 else:
                     logger.error("Socket receive data failed.")
                     reactor.remove(self)
@@ -89,6 +88,7 @@ class SockHandle(EventHandler):
                 self._socket_fd.close()
                 break
             if send_len == len(write_data):
+                # reactor.modify(self, Event.ReadEvent)
                 try:
                     reactor.modify(self, Event.ReadEvent)
                 except:

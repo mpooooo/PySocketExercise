@@ -61,9 +61,9 @@ class GameActivityEngine(object):
             winner = activity.getWinner()
             winner_message = None
             if not winner is None:
-                winner_message = 'winner is' + str(winner)
+                winner_message = 'Game: winner is: ' + str(winner)
             else:
-                winner_message = 'nobody get correct answer.'
+                winner_message = 'Game: nobody get correct answer.'
             group = activity.getGameGroup()
             self.sendMessage(group, winner_message)
             activity.tearDown()

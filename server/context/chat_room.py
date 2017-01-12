@@ -30,8 +30,8 @@ class ChatRoom(BaseRoom):
         user_id = user_obj.user_id
         if user_id in self.permission_user and not user_id in self.listening_user:
             self.addUser(user_id, user_obj)
-            message = str({'System_Message':self.greet_message%(user_id, self.room_id)})
-            self.boardcast(message)
+            message_dict = {'System_Message':self.greet_message%(user_id, self.room_id)}
+            self.boardcast(message_dict)
             return True, 'enter success'
         else:
             return False, 'not permission or in the room already'
@@ -39,8 +39,12 @@ class ChatRoom(BaseRoom):
     def leaveRoom(self, user_id, user_obj):
         user_id = user_obj.user_id
         if user_id in self.listening_user:
-            self.removeUser(user_id, user_obj)
-            message = self.farewell_message%(user_id, self.room_id)
+            if len(self.listening_user) == 0:
+                self.destroy()
+            else:
+                self.removeUser(user_id, user_obj)
+                message_dict = {'System_Message': self.farewell_message%(user_id, self.room_id)}
+                self.boardcast(message_dict)
             return True, 'leave room success'
         return False, 'not in room failed'
 

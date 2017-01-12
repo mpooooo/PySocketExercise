@@ -41,14 +41,14 @@ class ActionInterface(UserAction, MessageAction, RoomAction, GameEnginAction):
         self.setCallback(None)
         context = Context.getInstance()
         goal_user, goal_user_id = None, None
+        logger.info('handler disconnect, online users: %s', context.getOnlineUser())
         for user_id, user in context.getOnlineUser().items():
-            if user.telecom_handler is user_handler:
+            if id(user.telecom_handler) == id(user_handler):
                 goal_user, goal_user_id = user, user_id
                 break
         if not goal_user is None:
-            logger.info('user[%s] disconnect to the server', goal_user.user_id)
-            user_obj = User.getInstance(goal_user_id, goal_user.nick_name)
-            self.setUser(user_obj)
+            logger.info('user[%s: %s] disconnect to the server', goal_user.user_id, goal_user)
+            self.setUser(goal_user)
             self.logout()
         else:
             logger.error('disconnect user obj is None.')

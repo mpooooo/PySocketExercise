@@ -9,7 +9,7 @@ import random
 class Game21(object):
 
     def __init__(self):
-        self._game_message = 'Notice: 21Game task: use number %s with +=*/() to close 21'
+        self._game_message = 'Notice: [21Game use number %s with +=*/() to close but not bigger than 21]'
         self._activity_tag = '21game'
         self._stop = False
         self._group = 'hall'

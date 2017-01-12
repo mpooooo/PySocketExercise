@@ -114,6 +114,8 @@ def loginOrRegister(client):
             client.messageSend(str(json_dct))
             rev_lst = client.getReceiveData()
             for ret_dict in rev_lst:
+                if (ret_dict.has_key('System_Message')):
+                    logger.info(ret_dict['System_Message'])
                 if ret_dict.has_key('Ret_Code') and (ret_dict['Ret_Code']) is True:
                     user = LocalUser.getInstance()
                     user.setUserId(json_dct[parser.json_key_user][parser.json_key_user_id])
@@ -132,7 +134,7 @@ def inputMessage(action):
     logger.info('input you chat command with the instruction above.')
     while True:
         input_cmd = raw_input('')
-        if input_cmd == 'exit':
+        if input_cmd == 'exit' or input_cmd == 'logout':
             action.client.close()
             sys.exit()
         json_dct = parser.parse(input_cmd)
@@ -178,7 +180,7 @@ if __name__ == '__main__':
             * room create room_id:                   create chat room          *
             * room invite user1 user2:               invite users to room      *
             * room enter  room_id:                   enter to room             *
-            * room leave room id:                    leave cur room            *
+            * room leave:                            leave cur room            *
             *                                                                  *
             ********************************************************************
         '''

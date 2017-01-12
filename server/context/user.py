@@ -6,6 +6,7 @@ import time
 from hall import Hall
 import threading
 from context import Context
+import time, datetime
 sys.path.append('..')
 from sqlite_db import db_operation
 from sqlite_db.user_interface import UserInterface
@@ -93,8 +94,11 @@ class User(object):
                 online_time = info_dict[self._db_interface.key_online_time]
                 logger.info('user login success, last login time [%s], online time [%s].', last_login_time, online_time)
                 ret_data = 'login success.'
+                if online_time is None:
+                    online_time = 0
                 self._db_interface.updateLoginStatus(self.user_id, self.key_online)
                 self._db_interface.updateLoginTime(self.user_id, time.time())
+                self.receiveMessage({'System_Message':'online time :'+str(int(online_time))+' seconds'})
             elif pass_word == self._pass_word and status == self.key_online:
                 ret_code = False
                 ret_data = 'user has been login'
@@ -107,9 +111,9 @@ class User(object):
         logger.info('user login finish with [%s: %s]', ret_code, ret_data)
         return ret_code, ret_data
 
-    def receiveMessage(self, msg_text):
-        logger.info('user[%s] receive message[%s] to transport back.', self.user_id, msg_text)
-        self._telecom_handler.asynRetData(msg_text)
+    def receiveMessage(self, message_dict):
+        logger.info('user[%s] receive message[%s] to transport back.', self.user_id, message_dict)
+        self._telecom_handler.asynRetData(str(message_dict))
 
     def getOnlineTime(self):
         if not self._db_interface:
