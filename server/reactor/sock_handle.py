@@ -89,11 +89,17 @@ class SockHandle(EventHandler):
                 self._socket_fd.close()
                 break
             if send_len == len(write_data):
-                reactor.modify(self, Event.ReadEvent)
+                try:
+                    reactor.modify(self, Event.ReadEvent)
+                except:
+                    reactor.remove(self)
+                    self._socket_fd.close()
                 logger.info('write finish.')
                 break
         self._ret_data = []
         self.rlock.release()
 
     def handleError(self):
-        pass
+        reactor = Reactor.getInstance()
+        reactor.remove(self)
+        self._socket_fd.close()

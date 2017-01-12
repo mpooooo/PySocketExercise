@@ -17,7 +17,6 @@ class Reactor(object):
         self.impl = ReactorImplementation(); 
         self.controller = Controller()
         
-    # warn
     @classmethod
     def getInstance(cls):
         if(cls.__instance == None):
@@ -32,6 +31,7 @@ class Reactor(object):
         return self.impl.remove(event_handler)
     
     def modify(self, event_handler, event):
+        ret = None
         try:
             ret = self.impl.modify(event_handler, event)
         except:

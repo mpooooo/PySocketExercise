@@ -39,4 +39,6 @@ class ListenHandle(EventHandler):
         pass
 
     def handleError(self):
-        pass
+        reactor = Reactor.getInstance()
+        reactor.remove(self)
+        self._listen_fd.close()
