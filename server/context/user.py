@@ -8,7 +8,6 @@ import threading
 from context import Context
 import time, datetime
 sys.path.append('..')
-from sqlite_db import db_operation
 from sqlite_db.user_interface import UserInterface
 from admin_user import AdminUser
 from server_logger import logger
