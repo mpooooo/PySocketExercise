@@ -11,6 +11,9 @@ from message_parser import MessageParser
 from action import Action
 from client_logger import logger
 
+host = '10.53.228.191'
+port = 2003
+
 class Client(object):
 
     def __init__(self):
@@ -154,8 +157,6 @@ def quit(signum, frame):
     sys.exit()
 
 if __name__ == '__main__':
-    host = '10.53.228.191'
-    port = 2003
     signal.signal(signal.SIGINT, quit)
     signal.signal(signal.SIGTERM, quit)
     client = Client()
