@@ -15,8 +15,8 @@ try:
 except:
     pass
 
-host = '10.53.228.191'
-port = 2003
+host = '127.0.0.1'
+port = 9999
 
 class Server(object):
 
