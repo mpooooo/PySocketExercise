@@ -32,6 +32,9 @@ class Context(object):
         if not self.user_connected_room.has_key(user_obj.user_id):
             self.user_connected_room[user_obj.user_id] = set()
         self.user_connected_room[user_obj.user_id].add(room_id)
+        # if not self.user_room_map.has_key(user_obj):
+        #     self.user_room_map[user_obj] = set()
+        # self.user_room_map[user_obj].add(room_id)
         logger.info('Context add online room [%s] user [%s]', room_id, user_obj)
         logger.info("Context status online room [%s], online user [%s], user:room [%s]", 
             self.online_room, self.online_user, self.user_connected_room)
@@ -40,6 +43,9 @@ class Context(object):
     def addOnlineRoom(self, room_id, room):
         self.online_room.update({room_id: room})
         room_owner = room.getRoomOwner()
+        # if not self.user_room_map.has_key(room_owner):
+        #     self.user_room_map[room_owner] = set()
+        # self.user_room_map[room_owner].add(room_id)
         logger.info('Context add online room [%s]', room_id)
         logger.info("Context status online room [%s], online user [%s], user:room [%s]", 
             self.online_room, self.online_user, self.user_connected_room)
@@ -52,6 +58,13 @@ class Context(object):
             if not self.user_connected_room.has_key(dst_room_owner.user_id):
                 self.user_connected_room[dst_room_owner.user_id] = set()
             self.user_connected_room[dst_room_owner.user_id].add(room_id)
+
+        # if self.user_room_map.has_key(src_room_owner) and \
+        #    room_id in self.user_room_map[src_room_owner]:
+        #     self.user_room_map[src_room_owner].remove(room_id)
+        #     if not self.user_room_map.has_key(dst_room_owner):
+        #         self.user_room_map[dst_room_owner] = set()
+        #     self.user_room_map[dst_room_owner].add(room_id)
         logger.info('Context change online room [%s] owner from %s to %s', room_id, src_room_owner.user_id, dst_room_owner.user_id)
 
     @rlock(Locker)
@@ -61,6 +74,10 @@ class Context(object):
             self.user_connected_room[user_obj.user_id].remove(room_id)
             if len(self.user_connected_room[user_obj.user_id]) == 0:
                 del self.user_connected_room[user_obj.user_id]
+        # if self.user_room_map.has_key(user_obj) and (room_id in self.user_room_map[user_obj]):
+        #     self.user_room_map[user_obj].remove(room_id)
+        #     if len(self.user_room_map[user_obj]) == 0:
+        #         del self.user_room_map[user_obj]
         logger.info('Context remove online room [%s] user [%s]', room_id, user_obj)
         logger.info("Context status online room [%s], online user [%s], user:room [%s]", 
             self.online_room, self.online_user, self.user_connected_room)
@@ -69,6 +86,16 @@ class Context(object):
     def removeOnlineRoom(self, room_id, room_obj):
         if self.online_room.has_key(room_id):
             del self.online_room[room_id]
+        # room_owner = room_obj.getRoomOwner()
+        # for r_id in self.user_room_map[room_owner]:
+        #     if r_id == room_id:
+        #          self.user_room_map[room_owner].remove(r_id)
+        #          if len(self.user_room_map) == 0:
+        #             del self.user_room_map[room_owner]
+        #          break
+        # logger.info('Context remove online room [%s]', room_id)
+        # logger.info("Context status online room [%s], online user [%s], user:room [%s]", 
+        #     self.online_room, self.online_user, self.user_room_map)
 
     @rlock(Locker)
     def getOnlineConnectedRoomWithUser(self, user):
@@ -111,6 +138,7 @@ class Context(object):
             del self.online_user[usr_id]
             if self.user_connected_room.has_key(user_obj.user_id):
                 del self.user_connected_room[user_obj.user_id]
+                # del self.user_room_map[user_obj.user_id]
             logger.info('Context remove online user [%s]', usr_id)
             logger.info("Context status online room [%s], online user [%s], user:room [%s]", 
             self.online_room, self.online_user, self.user_connected_room)

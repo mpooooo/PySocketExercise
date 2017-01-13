@@ -11,8 +11,8 @@ from message_parser import MessageParser
 from action import Action
 from client_logger import logger
 
-host = '10.53.228.191'
-port = 2003
+host = '127.0.0.1'
+port = 9999
 
 class Client(object):
 
@@ -182,6 +182,7 @@ if __name__ == '__main__':
             * room invite user1 user2:               invite users to room      *
             * room enter  room_id:                   enter to room             *
             * room leave:                            leave cur room            *
+            * 21game 1+2+3+4                         21 game answer            *
             *                                                                  *
             ********************************************************************
         '''

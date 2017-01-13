@@ -9,14 +9,18 @@ from context.context import Context
 
 class UserAction(object):
 
-    def __init__(self, user_obj):
+    def __init__(self, user_obj, handler):
         self._user = user_obj
+        self.handler = handler
 
     def setUser(self, user_obj):
         self._user = user_obj
 
     def getUser(self):
         return self._user
+
+    def setHandler(self, handler):
+        self.handler = handler
 
     @callback(MessageAction)
     def register(self):
@@ -26,7 +30,7 @@ class UserAction(object):
     @callback(MessageAction)    
     def login(self):
         context = Context.getInstance()
-        ret_code, ret_data = self._user.login()
+        ret_code, ret_data = self._user.login(self.handler)
         if ret_code is True:
             context.addOnlineUser(self._user.user_id, self._user)
             hall = Hall.getInstance()

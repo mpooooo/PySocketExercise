@@ -16,8 +16,8 @@ from server_logger import logger
 
 class ActionInterface(UserAction, MessageAction, RoomAction, GameEnginAction):
 
-    def __init__(self, user_obj = None, msg_obj = None, room_obj = None, callback_func = None):
-        UserAction.__init__(self, user_obj)
+    def __init__(self, user_obj = None, msg_obj = None, room_obj = None, handler = None, callback_func = None):
+        UserAction.__init__(self, user_obj, handler)
         MessageAction.__init__(self, msg_obj, callback_func)
         RoomAction.__init__(self, room_obj)
         GameEnginAction.__init__(self)

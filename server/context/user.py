@@ -8,6 +8,7 @@ import threading
 from context import Context
 import time, datetime
 sys.path.append('..')
+from sqlite_db import db_operation
 from sqlite_db.user_interface import UserInterface
 from admin_user import AdminUser
 from server_logger import logger
@@ -78,7 +79,7 @@ class User(object):
         logger.info('user registerd finish with [%s: %s]', ret_code, ret_data)
         return ret_code, ret_data
 
-    def login(self):
+    def login(self, socket_handler):
         if not self._db_interface:
             self._db_interface = UserInterface()
         logger.info('user login, user_id:[%s], user_passwords:[%s]', self.user_id, self._pass_word)
@@ -97,6 +98,7 @@ class User(object):
                     online_time = 0
                 self._db_interface.updateLoginStatus(self.user_id, self.key_online)
                 self._db_interface.updateLoginTime(self.user_id, time.time())
+                self.telecom_handler = socket_handler
                 self.receiveMessage({'System_Message':'online time :'+str(int(online_time))+' seconds'})
             elif pass_word == self._pass_word and status == self.key_online:
                 ret_code = False

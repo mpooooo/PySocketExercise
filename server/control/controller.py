@@ -72,7 +72,7 @@ class Controller(object):
             usr_dct = cmd_dict[key_user]
             pass_word = None
             usr_obj = User.getInstance(usr_dct[key_user_id], usr_dct[key_user_nick_name])
-            usr_obj.telecom_handler = handler
+            # usr_obj.telecom_handler = handler
             if usr_dct.has_key(key_user_pass_word):
                 usr_obj.pass_word = usr_dct[key_user_pass_word]
             return usr_obj
@@ -110,6 +110,7 @@ class Controller(object):
             room_obj = self.extractRoom(cmd_dict, usr_obj)
             self.action.setRoom(room_obj)
             self.action.setCallback(sock_handle.asynRetData)
+            self.action.setHandler(sock_handle)
             self._exec_thread_pool.addTask(self._exec_map[cmd_dict[key_operate]])
         else:
             logger.error('Controller ditribute error message: %s .', sock_handle.received_data)
