@@ -148,5 +148,11 @@ class Context(object):
         ret = self.online_user
         return ret
 
+    @rlock(Locker)
+    def getOnlineUserWithId(self, user_id):
+        if self.online_user.has_key(user_id):
+            return self.online_user[user_id]
+        return None
+        
     def __del__(self):
         pass
