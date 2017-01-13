@@ -10,10 +10,18 @@ from context.hall import Hall
 class RoomAction(object):
 
 	def __init__(self, room_obj):
-		self._room = room_obj
+		self._room = None
+		self.setRoom(room_obj)
 
 	def setRoom(self, room_obj):
-		self._room = room_obj
+		online_room = None
+		if not room_obj is None:
+			context = Context.getInstance()
+            online_room = context.getOnlineRoomWithId(room_obj.room_id)
+        if online_room is None:
+			self._room = room_obj
+		else:
+			self._room = online_room
 
 	def getRoom(self):
 		return self._room
